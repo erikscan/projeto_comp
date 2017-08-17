@@ -1,0 +1,442 @@
+grammar org.xtext.java.Java hidden(WS, ML_COMMENT, SL_COMMENT)
+
+generate java "http://www.xtext.org/java/Java"
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
+
+Head:
+	elements+=Compilation_unit;
+
+Compilation_unit:
+	{Compilation_unit} package=(Package_statement)? imports+=Import_statement* type_declarations+=Type_declaration*;
+
+Type_declaration:
+	doc=DOC_COMMENT? (name=Class_declaration | name=Interface_declaration) EOL?;
+
+terminal INTERFACE:
+	"interface";
+
+terminal EXTENDS:
+	"extends";
+
+terminal COMMA:
+	",";
+
+Interface_declaration:
+	modifiers+=Modifier* INTERFACE interfaceName=ID
+	(EXTENDS extend=Interface_name (COMMA extends+=(Interface_name))*)?
+	"{" (fields+=Field_declaration*) "}";
+
+Class_declaration:
+	modifiers+=Modifier* 'class' className=ID
+	(EXTENDS extend=Class_name)?
+	('implements' implement=Interface_name (COMMA implements+=(Interface_name))*)?
+	"{" (fields+=Field_declaration*) "}";
+
+Field_declaration returns Field_declaration:
+	(doc=DOC_COMMENT? (name=Variable_declaration
+	| name=Constructor_declaration
+	| name=Method_declaration))
+	| (name=Static_initializer)
+	| debug=EOL;
+
+Method_declaration:
+	modifiers+=Modifier* type=Type name=ID "(" parameter=Parameter_list? ")" (("[" "]") | ("[]"))*
+	((statement=Statement_block) | debug=EOL);
+
+Method_call:
+	name=ID "(" parameter=Parameter_list_method_call? ")";
+
+Constructor_declaration:
+	modifiers+=Modifier* name=ID "(" (parameters=Parameter_list)? ")" statement=Statement_block;
+
+Parameter_list_method_call:
+	name=ID (COMMA parameters+=ID)*;
+
+Parameter_list:
+	parameter=Parameter (COMMA parameters+=Parameter)*;
+
+Parameter:
+	type=Type name=ID (("[" "]") | ("[]"))*;
+
+Variable_declaration:
+	modifiers+=Modifier* type=Type name=Variable_declarator (COMMA names+=Variable_declarator)* EOL;
+
+Variable_declarator:
+	name=ID (("[" "]") | ("[]"))* (EQUAL initializer=Variable_initializer)?;
+
+terminal EQUAL:
+	"=";
+
+Variable_initializer:
+	(expression=Expression)
+	| ({Variable_initializer} => "{" (variableInitializer1=Variable_initializer (COMMA
+	variableIniatializer2+=Variable_initializer)* (COMMA)?)? "}");
+
+Expression:
+	=> ((numericExpression3=Numeric_Expression_NR)) aux=Expression_aux
+	| (logicalExpression=Logical_Expression_NR) aux=Expression_aux
+	| (bitExpression=Bit_Expression_NR) aux=Expression_aux
+	| => (castExpression=Cast_Expression) aux=Expression_aux
+	| => (creatingExpression=Creating_Expression) aux=Expression_aux
+	| (literalExpression=Literal_Expression) aux=Expression_aux
+	| (null=NULL) aux=Expression_aux
+	| (super=SUPER) aux=Expression_aux
+	| (this=THIS) aux=Expression_aux
+	| (name=ID) aux=Expression_aux;
+
+terminal NULL:
+	"NULL";
+
+terminal THIS:
+	"this";
+
+terminal SUPER:
+	"super";
+
+Expression_aux:
+	(("(" argList=Arg_List? ")")) aux=Expression_aux
+	| (("[" expression2=Expression "]")) aux=Expression_aux
+	| (('.' expression2=Expression)) aux=Expression_aux
+	| ((COMMA expressionComma=Expression)) aux=Expression_aux
+	| ((INSTANCEOF (name=Class_name))) aux=Expression_aux
+	| (sgin=(INCREMENT | DECREMENT) aux=Expression_aux)
+	| (numericSign=(PLUS | PLUS_EQUAL | MINUS | MINUS_EQUAL | MULTIPLY | MULTIPLY_EQUAL | DIVIDE | DIVIDE_EQUAL | MODULE
+	| MODULE_EQUAL) exp2=Expression aux=Expression_aux)
+	| (testingSign=(BT | ST | BE | SE | DOUBLE_EQUAL | DIFFERENT) exp1=Expression aux=Expression_aux)
+	| ((logicalSign=(OR | OR_EQUAL | EXP | EXP_EQUAL | DOUBLE_OR_EQUAL | MODULE | MODULE_EQUAL) |
+	ampersand=Ampersand_Rule) exp1=Expression aux=Expression_aux)
+	| (WAT exp1=Expression COLON exp2=Expression aux=Expression_aux)
+	| (stringSign=(PLUS | PLUS_EQUAL) exp1=Expression aux=Expression_aux)
+	| (bitSign=(R_SHIFT_EQUAL | L_SHIFT | R_SHIFT | SUPER_SHIFT) expressionBit=Expression aux=Expression_aux)
+	| {Expression_aux};
+
+terminal INSTANCEOF:
+	"instanceof";
+
+terminal L_SHIFT:
+	"<<";
+
+terminal R_SHIFT:
+	">>";
+
+terminal SUPER_SHIFT:
+	">>>";
+
+terminal R_SHIFT_EQUAL:
+	">>=";
+
+terminal DOUBLE_OR_EQUAL:
+	"||=";
+
+terminal OR:
+	"|";
+
+terminal OR_EQUAL:
+	"|=";
+
+terminal EXP:
+	"^";
+
+terminal EXP_EQUAL:
+	"^=";
+
+terminal DOUBLE_EQUAL:
+	"==";
+
+terminal DIFFERENT:
+	"!=";
+
+terminal BT:
+	">";
+
+terminal ST:
+	"<";
+
+terminal BE:
+	">=";
+
+terminal SE:
+	"<=";
+
+terminal DIVIDE:
+	"/";
+
+terminal DIVIDE_EQUAL:
+	"/=";
+
+terminal MODULE:
+	"%";
+
+terminal MODULE_EQUAL:
+	"%=";
+
+terminal PLUS_EQUAL:
+	"+=";
+
+terminal MINUS_EQUAL:
+	"-=";
+
+terminal MULTIPLY:
+	"*";
+
+terminal MULTIPLY_EQUAL:
+	"*=";
+
+terminal WAT:
+	"?";
+
+Ampersand_Rule:
+	(a1=AMPERSAND (a2=AMPERSAND | EQUAL)?);
+
+terminal AMPERSAND:
+	"ampersand";
+
+Float_Literal:
+	decimalDigits1=DECIMAL_DIGITS '.' (decimalDigits2=DECIMAL_DIGITS)? (exp=EXPOENT_PART)?;
+
+Literal_Expression:
+	((exp=HEXA) | (exp1=DECIMAL_DIGITS))
+	| exp2=Float_Literal
+	| (string=STRING)
+	| (char=CHAR);
+
+terminal STRING:
+	'"'->'"';
+
+Creating_Expression:
+	NEW ((className=Class_name "(" argList=Arg_List ")")
+	| (typeSpecifier=Type_specifier ("[" expression=Expression "]")? ("[" "]" | "[]")*)
+	| ("(" expression=Expression ")"));
+
+terminal COLON:
+	":";
+
+terminal NEW:
+	"new";
+
+Cast_Expression:
+	("(" type=Type ")" expression=Expression);
+
+Bit_Expression_NR:
+	(NOT expression=Expression);
+
+terminal NOT:
+	"~";
+
+Logical_Expression_NR:
+	(EXCLAMATION expression=Expression)
+	| true=TRUE
+	| false=FALSE;
+
+terminal EXCLAMATION:
+	"!";
+
+terminal FALSE:
+	'false';
+
+terminal TRUE:
+	'true';
+
+Arg_List:
+	expression=Expression (COMMA expressions+=Expression)*;
+
+Numeric_Expression_NR:
+	sinal_numeric=(MINUS | INCREMENT | DECREMENT) expression=Expression;
+
+terminal DECREMENT:
+	'--';
+
+terminal INCREMENT:
+	'++';
+
+Type:
+	name=Type_specifier (("[" "]") | ("[]"))*;
+
+Type_specifier:
+	"boolean"
+	| "byte"
+	| "char"
+	| "short"
+	| "int"
+	| "float"
+	| "long"
+	| "double"
+	| "void"
+	| Class_name;
+
+Modifier:
+	MOD | STATIC;
+
+terminal STATIC:
+	'static';
+
+Static_initializer:
+	static=STATIC name=Statement_block;
+
+Statement_block:
+	{Statement_block} "{" (statements+=Statement*) "}";
+
+Statement:
+	(returnSmt=Return_Statement)
+	| (variable=Variable_declaration)
+	| (expressionx=Expression)
+	| (ifStatement=If_Statement)
+	| (doStatement=Do_Statement)
+	| (whileStatement=While_Statement)
+	| (forStatement=For_Statement)
+	| (switchStatement=Switch_Statement)
+	| => (statementBlock=Statement_block)
+	| (try=Try_statement)
+	| (name=ID COLON statement=Statement)
+	| {Statement} 'break' name=ID? EOL
+	| {Statement} 'continue' name=ID? EOL
+	| {Statement} EOL
+	| ((variableDeclarator=Variable_declarator) EOL);
+
+Switch_Statement:
+	{Switch_Statement}
+	SWITCH "(" sw_exp=Expression ")" "{"
+	((CASE case_exp+=Expression COLON) | (statements+=Statement))* (DEFAULT COLON)? ((CASE case_exp+=Expression COLON) |
+	(statements+=Statement))*
+	"}";
+
+For_Statement:
+	FOR "(" (variable=Variable_declaration | (expression=Expression EOL) | pv=EOL)
+	(expression2=Expression)? EOL
+	(expression3=Expression)?
+	")" statement=Statement;
+
+While_Statement:
+	WHILE "(" expression=Expression ")" statement=Statement;
+
+Do_Statement:
+	DO statement=Statement WHILE "(" expression=Expression ")" EOL;
+
+If_Statement:
+	IF "(" expression=Expression ")" statement=Statement
+	(=> ELSE elseStatement=Statement)?;
+
+Return_Statement:
+	{Return_Statement} RETURN rv=Return_value? EOL;
+
+Return_value:
+	(name=ID)
+	| (Method_call)
+	| (Literal_Expression);
+
+terminal DEFAULT:
+	"default";
+
+terminal CASE:
+	"case";
+
+terminal SWITCH:
+	"switch";
+
+terminal FOR:
+	"for";
+
+terminal RETURN:
+	"return";
+
+terminal EOL:
+	";";
+
+terminal IF:
+	"if";
+
+terminal ELSE:
+	"else";
+
+terminal DO:
+	"do";
+
+terminal WHILE:
+	"while";
+
+Try_statement:
+	try=TRY tryStatement=Statement
+	(=> catchs+=CATCH "(" parameters+=Parameter ")" catchStatements+=Statement)*
+	(=> finally=FINALLY finallyStatement=Statement)?;
+
+Package_statement:
+	PACKAGE name=Package_name EOL+;
+
+terminal PACKAGE:
+	"package";
+
+Package_name:
+	ID Package_name_aux;
+
+Package_name_aux:
+	('.' ID)*;
+
+terminal IMPORT:
+	"import";
+
+Import_statement:
+	IMPORT ((classname=Class_name EOL) | (packagename=Package_name '.' MULTIPLY EOL EOL));
+
+	//Cuidado com Package_name Class_name e Interface_name pq sao iguais - ambiguidade
+Class_name:
+	Package_name;
+
+Interface_name:
+	Package_name;
+
+EXPOENT_PART:
+	(DECIMAL_DIGITS);
+
+terminal CHAR:
+	"'" . "'";
+
+terminal PLUS:
+	'+';
+
+terminal MINUS:
+	'-';
+
+terminal MOD:
+	"public"
+	| "private"
+	| "protected"
+	| "final"
+	| "native"
+	| "synchronized"
+	| "abstract"
+	| "threadsafe"
+	| "transient";
+
+terminal TRY:
+	'try';
+
+terminal CATCH:
+	'catch';
+
+terminal FINALLY:
+	'finally';
+
+terminal ID:
+	('a'..'z' | 'A'..'Z' | '_' | '$') ('a'..'z' | 'A'..'Z' | '_' | '0'..'9' | '$' | '\u00C0'..'\uFFFF')*;
+
+terminal HEXA:
+//| ('0'..'7')* 
+	('0' 'x' ('0'..'9' 'a'..'f')*);
+
+terminal DECIMAL_DIGITS returns ecore::EInt:
+	('0'..'9')+;
+
+terminal ML_COMMENT:
+	'/*'->'*/';
+
+terminal SL_COMMENT:
+	'//' !('\n' | '\r')* ('\r'? '\n')?;
+
+terminal WS:
+	(' ' | '\t' | '\r' | '\n')+;
+
+terminal ANY_OTHER:
+	.;
+
+terminal DOC_COMMENT:
+	'/**';
