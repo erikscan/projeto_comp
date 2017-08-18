@@ -109,9 +109,7 @@ class JavaValidator extends AbstractJavaValidator {
 						validaAtributoComExpressaoAritmetica(vds, declarator, nomeClasse);
 					}
 				}
-			} else if (st.switchStatement != null) {
-				validarSwitchStatements(vds, nomeClasse, st.switchStatement);
-			} else if (st.forStatement != null) {
+			} if (st.forStatement != null) {
 				validarForStatements(vds, nomeClasse, st.forStatement);
 			} else if (st.variableDeclarator != null) {
 				validaAtributoComExpressaoAritmetica(vds, st.variableDeclarator, nomeClasse);
@@ -210,7 +208,6 @@ class JavaValidator extends AbstractJavaValidator {
 					exp = aux.exp2;
 				}
 			} else if (tipoVariavel == "boolean") {
-				// validar se é expressão relacional
 				if (exp.logicalExpression == null && exp.name != "true" && exp.name != "!true" && exp.name != "false" &&
 					exp.name != "!false" && exp.aux.testingSign == null) {
 					error("Invalid value for type " + tipoVariavel, exp, JavaPackage.Literals.EXPRESSION__NAME);
@@ -849,54 +846,6 @@ class JavaValidator extends AbstractJavaValidator {
 
 	def isNomeBooleano(String nome) {
 		return "true".equals(nome) || "!true".equals(nome) || "false".equals(nome) || "!false".equals(nome);
-	}
-
-	def validarSwitchStatements(List<Variable_declaration> vds, String className, Switch_Statement sw_st) {
-		var List<Variable_declaration> vdsFor = vds;
-		var tipoSwitchExp = buscaTipoVariavel(vdsFor, sw_st.sw_exp.name, className);
-		// checa tipo expressao
-		println(tipoSwitchExp);
-		if (tipoSwitchExp === null) {
-			// Checa se a expressao é null, se for deve levantar erro.
-			error("A expressão não pode ser " + sw_st.sw_exp.name + ". Deve ser do tipo int ou String.", sw_st.sw_exp,
-				JavaPackage.Literals.EXPRESSION__NAME);
-			return;
-		} else {
-			// Checa se a variavel é de tipo diferente de int e String.
-			if (tipoSwitchExp != "int" && tipoSwitchExp != "String") {
-				error("A expressao/variavel " + sw_st.sw_exp.name + " deve ser do tipo int ou String.", sw_st.sw_exp,
-					JavaPackage.Literals.EXPRESSION__NAME);
-				return;
-			}
-		}
-
-		for (Expression each_exp : sw_st.case_exp) {
-			println(each_exp.literalExpression);
-			var tipoExpressao = buscaTipoExpressao(each_exp)
-			if (tipoExpressao != tipoSwitchExp) {
-				error("O tipo do case: " + tipoExpressao + ", deve casar com o tipo key do switch: " + tipoSwitchExp +
-					".", each_exp, JavaPackage.Literals.EXPRESSION__NAME);
-				return;
-			}
-		}
-
-		if (tipoSwitchExp == "String") {
-			var listaCasesString = new HashSet<String>();
-			for (Expression each_exp : sw_st.case_exp) {
-				if (!listaCasesString.add(each_exp.literalExpression.string)) {
-					error("Duplicate case", each_exp, JavaPackage.Literals.EXPRESSION__NAME);
-					return;
-				}
-			}
-		} else if (tipoSwitchExp == "int") {
-			var listaCasesInt = new HashSet<Integer>();
-			for (Expression each_exp : sw_st.case_exp) {
-				if (!listaCasesInt.add(each_exp.literalExpression.exp1)) {
-					error("Duplicate case", each_exp, JavaPackage.Literals.EXPRESSION__NAME);
-					return;
-				}
-			}
-		}
 	}
 
 	def validarForStatements(List<Variable_declaration> vds, String className, For_Statement fs) {
