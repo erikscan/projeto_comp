@@ -317,12 +317,7 @@ If_Statement:
 	(=> ELSE elseStatement=Statement)?;
 
 Return_Statement:
-	{Return_Statement} RETURN rv=Return_value? EOL;
-
-Return_value:
-	(name=ID)
-	| (Method_call)
-	| (Literal_Expression);
+	{Return_Statement} RETURN rv=Expression? EOL;
 
 terminal DEFAULT:
 	"default";

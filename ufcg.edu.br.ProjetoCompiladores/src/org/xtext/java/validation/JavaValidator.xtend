@@ -493,14 +493,14 @@ class JavaValidator extends AbstractJavaValidator {
 						(literal.exp2 != null || literal.string != null || literal.char != null)) {
 						error("O método deve retornar um int.", retorno, JavaPackage.Literals.RETURN_STATEMENT__RV);
 					}
-				} else if (retorno.rv.name != null) {
-					var String tipo = buscaTipoVariavel(vds, retorno.rv.name, nomeClasse);
+				} else if (retorno.rv.aux != null) {
+					var String tipo = buscaTipoExpressao(retorno.rv, vds, nomeClasse, md.type.name);
 					if (tipo == null) {
 						error("Variável " + retorno.rv.name + " não existe.", retorno.rv,
-							JavaPackage.Literals.RETURN_VALUE__NAME);
+							JavaPackage.Literals.EXPRESSION__AUX);
 					} else if (!isNomeClassIgualOuFilha(tipo, md.type.name)) {
 						error("Não é possível converter o tipo " + tipo + " para " + md.type.name, retorno.rv,
-							JavaPackage.Literals.RETURN_VALUE__NAME);
+							JavaPackage.Literals.EXPRESSION__AUX);
 					}
 				}
 			}
