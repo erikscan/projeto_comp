@@ -28,13 +28,9 @@ import org.xtext.java.java.Return_Statement
 class JavaGenerator implements IGenerator {
 	
 	Integer variables = 1;
-	Integer address = 0;
-	Integer labelIndex = 0;
-	String Labels = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	Integer addr= 0;
 		
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-		variables = 1;
-		address = 0;
 		for(e: resource.allContents.toIterable.filter(Class_declaration)) {
     		fsa.generateFile(e.className.toString() + ".txt", 	e.compileClass)
   		}
@@ -68,6 +64,7 @@ class JavaGenerator implements IGenerator {
 	
 	def compileMethod(Method_declaration declaration)'''
 		«IF declaration.statement != null»
+			; method
 			«declaration.name»:
 			«compileStatementBlock(declaration.statement)»
 		«ENDIF»
@@ -88,22 +85,22 @@ class JavaGenerator implements IGenerator {
 	
 	def compileStatement(Statement statement) '''
 		«IF statement.variable != null»
-			variavel
+			; variable
 			«compileVariable(statement.variable)»
 		«ELSEIF statement.variableDeclarator != null»
-			declaracao
+			; declarator
 			«compileDeclarator(statement.variableDeclarator)»
 		«ELSEIF statement.forStatement != null»
-			for
+			; for smt
 			«compileForStatement(statement.forStatement)»
 		«ELSEIF statement.returnSmt != null»
-			return stmt
+			; return smt
 			«compileReturnStatement(statement.returnSmt)»
 		«ELSEIF statement.expressionx != null»
-			expressao
+			; expression
 			«compileExpression(statement.expressionx)»
 		«ELSEIF statement.statementBlock != null»
-			stmt block
+			; smt block
 			«compileStatementBlock(statement.statementBlock)»
 		«ENDIF»
 	'''
@@ -130,7 +127,7 @@ class JavaGenerator implements IGenerator {
 	'''
 	
 	def compileExpression(Expression expression) '''
-	AQUIIIII
+	; expression
 	«IF expression.literalExpression != null»	
 		«IF expression.aux.aux == null && expression.aux.exp1 == null»
 			«IF expression.literalExpression.string != null»
@@ -150,63 +147,63 @@ class JavaGenerator implements IGenerator {
 	«ELSEIF expression.name != null»
 «««	rp
 		«IF expression.aux != null»  
-		«address.toString()»: ADD SP, SP, #methodSize
+		«address»: ADD SP, SP, #methodSize
 		«nextAddress»
-		«address.toString()»: ST *SP, «address+16»
+		«address»: ST *SP, «addr+16»
 		«nextAddress»
 		«address»: BR «expression.name»
 		«nextAddress»
-		«address.toString()»: ADD SP, SP, #methodSize
+		«address»: ADD SP, SP, #methodSize
 		«nextAddress»
 		«ELSE»
-		«address.toString()»: LD R«variables.toString», *«expression.name»
+		«address»: LD R«variables.toString», *«expression.name»
 		«increment»
 		«nextAddress»
 		«IF expression.aux.sgin != null»
 		«IF expression.aux.sgin.equals("++")»
-		«address.toString()»: ADD R«variables.toString», #1
+		«address»: ADD R«variables.toString», #1
 		«nextAddress»
 		«ELSE»
-		«address.toString()»: SUB R«variables.toString», #1
+		«address»: SUB R«variables.toString», #1
 		«nextAddress»
 		«ENDIF»
-		«address.toString()»: ST «expression.name», R«variables.toString»
+		«address»: ST «expression.name», R«variables.toString»
 		«nextAddress»
 		«ELSE»
-		«address.toString()»: LD R«variables.toString()», #«expression.aux.exp1.literalExpression.exp1»
+		«address»: LD R«variables.toString()», #«expression.aux.exp1.literalExpression.exp1»
 		«increment»
 		«nextAddress»
 		«IF expression.aux.testingSign.equals("<")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
-			«address.toString()»: BGTZ R«new Integer(variables).toString()», #ENDFOR
+			«address»: BGTZ R«variables», #ENDFOR
 			«nextAddress»
 		«ELSEIF expression.aux.testingSign.equals(">")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
-			«address.toString()»: BGTZ R«new Integer(variables).toString()», #ENDFOR
+			«address»: BGTZ R«variables», #ENDFOR
 			«nextAddress»
 		«ELSEIF expression.aux.testingSign.equals(">=")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
-			«address.toString()»: BGEZ R«new Integer(variables).toString()», #ENDFOR
+			«address»: BGEZ R«variables», #ENDFOR
 			«nextAddress»
 		«ELSEIF expression.aux.testingSign.equals("<=")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
-			«address.toString()»: BGEZ R«new Integer(variables).toString()», #ENDFOR
+			«address»: BGEZ R«variables», #ENDFOR
 			«nextAddress»
 		«ELSEIF expression.aux.testingSign.equals("==")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
 			«increment»
-			«address.toString()»: CMP R«new Integer(variables).toString()», #ENDFOR
+			«address»: CMP R«variables», #ENDFOR
 			«nextAddress»
 		«ELSEIF expression.aux.testingSign.equals("!=")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
 			«increment»
-			«address.toString()»: CMP R«new Integer(variables).toString()», #ENDFOR
+			«address»: CMP R«variables», #ENDFOR
 			«nextAddress»
 		«ENDIF»
 		«ENDIF»
@@ -216,13 +213,13 @@ class JavaGenerator implements IGenerator {
 	
 	def generateNumericExpression(Expression expression) '''
 		«IF expression.numericExpression3 != null»
-			«address.toString()»: LD R«variables.toString», «expression.numericExpression3.expression.name»
+			«address»: LD R«variables.toString», «expression.numericExpression3.expression.name»
 			«nextAddress»
 			«IF expression.numericExpression3.sinal_numeric.equals("++")»
-				«address.toString()»: ADD R«variables.toString», R«variables.toString», #1
+				«address»: ADD R«variables.toString», R«variables.toString», #1
 				«nextAddress»
 			«ELSEIF expression.numericExpression3.sinal_numeric.equals("--")»
-				«address.toString()»: SUB R«variables.toString», R«variables.toString», #1
+				«address»: SUB R«variables.toString», R«variables.toString», #1
 				«nextAddress»
 			«ENDIF»
 			«increment»
@@ -244,7 +241,7 @@ class JavaGenerator implements IGenerator {
 						«IF declarator.initializer.expression.literalExpression.string != null»
 							«generateString(declarator)»
 						«ELSE»
-						«address.toString()»: ST «declarator.name», #«declarator.initializer.expression.literalExpression.exp1»
+						«address»: ST «declarator.name», #«declarator.initializer.expression.literalExpression.exp1»
 						«nextAddress»
 						«ENDIF»
 					«ELSE»
@@ -260,108 +257,91 @@ class JavaGenerator implements IGenerator {
 			«ENDIF»
 	'''
 	
-	def void increment() {
-		variables++;
-	}
-	
-	def void nextAddress() {
-		address = address + 8;
-	}
-	
-	def void nextLabel() {
-		labelIndex++;	
-	}
-	
-	def char getLabel(int index) {
-		return Labels.charAt(index);
-	}
-	
 	def  generateString(Variable_declarator declarator) '''
-		«address.toString()»: LD R«variables.toString()», "«declarator.initializer.expression.literalExpression.string»"
+		«address»: LD R«variables.toString()», "«declarator.initializer.expression.literalExpression.string»"
 		«increment»
 		«nextAddress»
-		«address.toString()»: ST «declarator.name», R«new Integer(variables-1).toString()»
+		«address»: ST «declarator.name», R«variables(-1)»
 		«nextAddress»
 	'''
 	
 	def  generateStringExpression(Expression expression) '''
-		«address.toString()»: LD R«variables.toString()», "«expression.literalExpression.string»"
+		«address»: LD R«variables.toString()», "«expression.literalExpression.string»"
 		«increment»
 		«nextAddress»
 	'''
 	
 	def generateSimpleLogical(Variable_declarator declarator) '''
 		«IF declarator.initializer.expression.logicalExpression.^true != null»
-			«address.toString()»: LD R«variables.toString()», TRUE
+			«address»: LD R«variables.toString()», TRUE
 			«increment»
 			«nextAddress»
-			«address.toString()»: ST «declarator.name», R«new Integer(variables-1).toString()»
+			«address»: ST «declarator.name», R«variables(-1)»
 			«nextAddress»
 		«ELSE»
-			«address.toString()»: LD R«variables.toString()», FALSE
+			«address»: LD R«variables.toString()», FALSE
 			«increment»
 			«nextAddress»
-			«address.toString()»: ST «declarator.name», R«new Integer(variables-1).toString()»
+			«address»: ST «declarator.name», R«variables(-1)»
 			«nextAddress»
 		«ENDIF»
 	'''
 	
 	def generateSimpleLogicalExpression(Expression expression) '''
 		«IF expression.logicalExpression.equals("true")»
-			«address.toString()»: LD R«variables.toString()», TRUE
+			«address»: LD R«variables.toString()», TRUE
 			«increment»
 			«nextAddress»
 		«ELSE»
-			«address.toString()»: LD R«variables.toString()», FALSE
+			«address»: LD R«variables.toString()», FALSE
 			«increment»
 			«nextAddress»
 		«ENDIF»
 	'''
 	
 	def generateIntLiteral(Variable_declarator declarator) '''
-		«address.toString()»: LD R«variables.toString()», #«declarator.initializer.expression.literalExpression.exp1»
+		«address»: LD R«variables.toString()», #«declarator.initializer.expression.literalExpression.exp1»
 		«increment»
 		«nextAddress»
-		«address.toString()»: LD R«variables.toString()», #«declarator.initializer.expression.aux.exp2.literalExpression.exp1»
+		«address»: LD R«variables.toString()», #«declarator.initializer.expression.aux.exp2.literalExpression.exp1»
 		«increment»
 		«nextAddress»
 		«IF declarator.initializer.expression.aux.numericSign.equals("+")»
-			====aqui2=====
-			«address.toString()»: ADD R«new Integer(variables-2).toString()», R«new Integer(variables-1).toString()» , R«new Integer(variables-2).toString()»
+			«address»: ADD R«variables(-2)», R«variables(-1)» , R«variables(-2)»
 			«nextAddress»
 		«ELSEIF declarator.initializer.expression.aux.numericSign.equals("*")»
-			«address.toString()»: MUL R«new Integer(variables-2).toString()», R«new Integer(variables-1).toString()» , R«new Integer(variables-2).toString()»
+			«address»: MUL R«variables(-2)», R«variables(-1)» , R«variables(-2)»
 			«nextAddress»
 		«ELSEIF declarator.initializer.expression.aux.numericSign.equals("/")»
-			«address.toString()»: DIV R«new Integer(variables-2).toString()», R«new Integer(variables-1).toString()» , R«new Integer(variables-2).toString()»
+			«address»: DIV R«variables(-2)», R«variables(-1)» , R«variables(-2)»
 			«nextAddress»
 		«ELSEIF declarator.initializer.expression.aux.numericSign.equals("-")»
-			«address.toString()»: SUB R«new Integer(variables-2).toString()», R«new Integer(variables-1).toString()» , R«new Integer(variables-2).toString()»
+			«address»: SUB R«variables(-2)», R«variables(-1)» , R«variables(-2)»
 			«nextAddress»
 		«ENDIF»
-		«address.toString()»: ST «declarator.name», R«new Integer(variables-2).toString()»
+		«address»: ST «declarator.name», R«variables(-2)»
 		«nextAddress»
 		«increment»
 	'''
 	
 	def generateIntLiteralExpression(Expression expression) '''
-		«address.toString()»: LD R«variables.toString()», #«expression.literalExpression.exp1»
+		«address»: LD R«variables.toString()», #«expression.literalExpression.exp1»
 		«increment»
 		«nextAddress»
-		«address.toString()»: LD R«variables.toString()», #«expression.aux.exp2.literalExpression.exp1»
+		«address»: LD R«variables.toString()», #«expression.aux.exp2.literalExpression.exp1»
 		«increment»
 		«nextAddress»
 		«IF expression.aux.numericSign.equals("+")»
-			«address.toString()»: ADD R«new Integer(variables-2).toString()», R«new Integer(variables-1).toString()» , R«new Integer(variables-2).toString()»
+			«address»: ADD R«variables(-2)», R«variables(-1)» , R«variables(-2)»
 			«nextAddress»
 		«ELSEIF expression.aux.numericSign.equals("*")»
-			«address.toString()»: MUL R«new Integer(variables-2).toString()», R«new Integer(variables-1).toString()» , R«new Integer(variables-2).toString()»
+			«address»: MUL R«variables(-2)», R«variables(-1)» , R«variables(-2)»
 			«nextAddress»
 		«ELSEIF expression.aux.numericSign.equals("/")»
-			«address.toString()»: DIV R«new Integer(variables-2).toString()», R«new Integer(variables-1).toString()» , R«new Integer(variables-2).toString()»
+			«address»: DIV R«variables(-2)», R«variables(-1)» , R«variables(-2)»
 			«nextAddress»
 		«ELSEIF expression.aux.numericSign.equals("-")»
-			«address.toString()»: SUB R«new Integer(variables-2).toString()», R«new Integer(variables-1).toString()» , R«new Integer(variables-2).toString()»
+			«address»: SUB R«variables(-2)», R«variables(-1)» , R«variables(-2)»
 			«nextAddress»
 		«ENDIF»
 		«increment»
@@ -370,170 +350,184 @@ class JavaGenerator implements IGenerator {
 	
 	
 	def generateTesting(Variable_declarator declarator) '''
-		«address.toString()»: LD R«variables.toString()», #«declarator.initializer.expression.literalExpression.exp1»
+		«address»: LD R«variables.toString()», #«declarator.initializer.expression.literalExpression.exp1»
 		«increment»
 		«nextAddress»
-		«address.toString()»: LD R«variables.toString()», #«declarator.initializer.expression.aux.exp1.literalExpression.exp1»
+		«address»: LD R«variables.toString()», #«declarator.initializer.expression.aux.exp1.literalExpression.exp1»
 		«increment»
 		«nextAddress»
 		«IF declarator.initializer.expression.aux.testingSign.equals("<")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
 			«increment»
-			«address.toString()»: BGTZ R«new Integer(variables).toString()», «address+24»
+			«address»: BGTZ R«variables», «addr+24»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», FALSE
+			«address»: LD R«variables(-2)», FALSE
 			«nextAddress»
-			«address.toString()»: BR «address + 16»
+			«address»: BR «addr+16»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», TRUE
+			«address»: LD R«variables(-2)», TRUE
 			«nextAddress»
 		«ELSEIF declarator.initializer.expression.aux.testingSign.equals(">")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
 			«increment»
-			«address.toString()»: BGTZ R«new Integer(variables).toString()», «address+24»
+			«address»: BGTZ R«variables», «addr+24»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», TRUE
+			«address»: LD R«variables(-2)», TRUE
 			«nextAddress»
-			«address.toString()»: BR «address + 16»
+			«address»: BR «addr+16»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», FALSE
+			«address»: LD R«variables(-2)», FALSE
 			«nextAddress»
 		«ELSEIF declarator.initializer.expression.aux.testingSign.equals(">=")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
 			«increment»
-			«address.toString()»: BGEZ R«new Integer(variables).toString()», «address+24»
+			«address»: BGEZ R«variables», «addr+24»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», TRUE
+			«address»: LD R«variables(-2)», TRUE
 			«nextAddress»
-			«address.toString()»: BR «address + 16»
+			«address»: BR «addr+16»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», FALSE
+			«address»: LD R«variables(-2)», FALSE
 			«nextAddress»
 		«ELSEIF declarator.initializer.expression.aux.testingSign.equals("<=")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
 			«increment»
-			«address.toString()»: BGEZ R«new Integer(variables).toString()», «address+24»
+			«address»: BGEZ R«variables», «addr+24»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», FALSE
+			«address»: LD R«variables(-2)», FALSE
 			«nextAddress»
-			«address.toString()»: BR «address + 16»
+			«address»: BR «addr+16»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», TRUE
+			«address»: LD R«variables(-2)», TRUE
 			«nextAddress»
 		«ELSEIF declarator.initializer.expression.aux.testingSign.equals("==")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
 			«increment»
-			«address.toString()»: CMP R«new Integer(variables).toString()», «address+24»
+			«address»: CMP R«variables», «addr+24»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», FALSE
+			«address»: LD R«variables(-2)», FALSE
 			«nextAddress»
-			«address.toString()»: BR «address + 16»
+			«address»: BR «addr+16»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», TRUE
+			«address»: LD R«variables(-2)», TRUE
 			«nextAddress»
 		«ELSEIF declarator.initializer.expression.aux.testingSign.equals("!=")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
 			«increment»
-			«address.toString()»: CMP R«new Integer(variables).toString()», «address+24»
+			«address»: CMP R«variables», «addr+24»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», TRUE
+			«address»: LD R«variables(-2)», TRUE
 			«nextAddress»
-			«address.toString()»: BR «address + 16»
+			«address»: BR «addr+16»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», FALSE
+			«address»: LD R«variables(-2)», FALSE
 			«nextAddress»
 		«ENDIF»
-		«address.toString()»: ST «declarator.name», R«new Integer(variables-2).toString()»
+		«address»: ST «declarator.name», R«variables(-2)»
 		«nextAddress»
 	'''
 	
 	def generateTestingExpression(Expression expression) '''
-		«address.toString()»: LD R«variables.toString()», #«expression.literalExpression.exp1»
+		«address»: LD R«variables.toString()», #«expression.literalExpression.exp1»
 		«increment»
 		«nextAddress»
-		«address.toString()»: LD R«variables.toString()», #«expression.aux.exp1.literalExpression.exp1»
+		«address»: LD R«variables.toString()», #«expression.aux.exp1.literalExpression.exp1»
 		«increment»
 		«nextAddress»
 		«IF expression.aux.testingSign.equals("<")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
 			«increment»
-			«address.toString()»: BGTZ R«new Integer(variables).toString()», «address+24»
+			«address»: BGTZ R«variables», «addr+24»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», FALSE
+			«address»: LD R«variables(-2)», FALSE
 			«nextAddress»
-			«address.toString()»: BR «address + 16»
+			«address»: BR «addr+16»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», TRUE
+			«address»: LD R«variables(-2)», TRUE
 			«nextAddress»
 		«ELSEIF expression.aux.testingSign.equals(">")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
 			«increment»
-			«address.toString()»: BGTZ R«new Integer(variables).toString()», «address+24»
+			«address»: BGTZ R«variables», «addr+24»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», TRUE
+			«address»: LD R«variables(-2)», TRUE
 			«nextAddress»
-			«address.toString()»: BR «address + 16»
+			«address»: BR «addr+16»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», FALSE
+			«address»: LD R«variables(-2)», FALSE
 			«nextAddress»
 		«ELSEIF expression.aux.testingSign.equals(">=")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
 			«increment»
-			«address.toString()»: BGEZ R«new Integer(variables).toString()», «address+24»
+			«address»: BGEZ R«variables», «addr+24»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», TRUE
+			«address»: LD R«variables(-2)», TRUE
 			«nextAddress»
-			«address.toString()»: BR «address + 16»
+			«address»: BR «addr+16»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», FALSE
+			«address»: LD R«variables(-2)», FALSE
 			«nextAddress»
 		«ELSEIF expression.aux.testingSign.equals("<=")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
 			«increment»
-			«address.toString()»: BGEZ R«new Integer(variables).toString()», «address+24»
+			«address»: BGEZ R«variables», «addr+24»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», FALSE
+			«address»: LD R«variables(-2)», FALSE
 			«nextAddress»
-			«address.toString()»: BR «address + 16»
+			«address»: BR «addr+16»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», TRUE
+			«address»: LD R«variables(-2)», TRUE
 			«nextAddress»
 		«ELSEIF expression.aux.testingSign.equals("==")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
 			«increment»
-			«address.toString()»: CMP R«new Integer(variables).toString()», «address+24»
+			«address»: CMP R«variables», «addr+24»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», FALSE
+			«address»: LD R«variables(-2)», FALSE
 			«nextAddress»
-			«address.toString()»: BR «address + 16»
+			«address»: BR «addr+16»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», TRUE
+			«address»: LD R«variables(-2)», TRUE
 			«nextAddress»
 		«ELSEIF expression.aux.testingSign.equals("!=")»
-			«address.toString()»: SUB R«new Integer(variables).toString()», R«new Integer(variables-2).toString()» , R«new Integer(variables-1).toString()»
+			«address»: SUB R«variables», R«variables(-2)» , R«variables(-1)»
 			«nextAddress»
 			«increment»
-			«address.toString()»: CMP R«new Integer(variables).toString()», «address+24»
+			«address»: CMP R«variables», «addr+24»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», TRUE
+			«address»: LD R«variables(-2)», TRUE
 			«nextAddress»
-			«address.toString()»: BR «address + 16»
+			«address»: BR «addr+16»
 			«nextAddress»
-			«address.toString()»: LD R«new Integer(variables-2).toString()», FALSE
+			«address»: LD R«variables(-2)», FALSE
 			«nextAddress»
 		«ENDIF»
 	'''
 	
-
+	def String variables(Integer i) {
+		(variables + i).toString
+	}
+	
+	def address() {
+		addr.toString
+	}
+	
+	def increment() {
+		variables++;
+	}
+	
+	def nextAddress() {
+		addr = addr+8;
+	}
 }
